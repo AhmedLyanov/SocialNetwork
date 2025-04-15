@@ -80,6 +80,7 @@ export default {
         localStorage.setItem('access', token);
         localStorage.setItem('student', JSON.stringify(userData));
         localStorage.setItem('diary', JSON.stringify(diary));
+        this.$router.push("/profile")
 
 
 
@@ -94,12 +95,11 @@ export default {
 
 
     async getDiary(token, studentId) {
-   
       const now = new Date();
 
       const query = `
     query DiaryQuery($studentId: UUID!) {
-      searchStudentDisciplines(input: { studentId: $studentId }) {
+      searchStudentDisciplines(input: { studentId: $studentId, filters: { studyPeriodId: "9d2b0f2d-52b2-4fff-8459-c5a46c51bbaf" } }) {
         discipline {
           id
           name
@@ -146,22 +146,7 @@ export default {
 
       const allDisciplines = response.data.data.searchStudentDisciplines;
 
-      const currentSemesterDisciplines = allDisciplines.filter(item => {
-        if (!item.discipline.studyPeriods || item.discipline.studyPeriods.length === 0) {
-          return false;
-        }
-
-   
-        const activePeriod = item.discipline.studyPeriods.find(period => {
-          const startDate = new Date(period.startDate);
-          const endDate = new Date(period.endDate);
-          return now >= startDate && now <= endDate;
-        });
-
-        return !!activePeriod;
-      });
-
-      return currentSemesterDisciplines;
+      return allDisciplines;
     },
 
     async signIn() {
@@ -202,7 +187,9 @@ export default {
               avatar
               createdAt
               email
+              lastName
               firstName
+              middleName
               id
               isLead
               roles
