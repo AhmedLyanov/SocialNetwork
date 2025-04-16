@@ -13,24 +13,37 @@
                             <i class="material-icons">person</i>
                         </div>
                     </div>
+                    <div class="contact-info">
+                        <a :href="'mailto:' + student.email" class="contact-item">
+                            <i class="material-icons">email</i>
+                            <span>{{ student.email }}</span>
+                        </a>
+                        <a :href="'tel:' + student.phoneNumber" class="contact-item" v-if="student.phoneNumber">
+                            <i class="material-icons">phone</i>
+                            <span>{{student.phoneNumber}}</span>
+                        </a>
+                    </div>
                 </div>
 
                 <div class="profile-details">
-                    <div class="profile-row">
-                        <div class="label">Фамилия:</div>
-                        <div class="value">{{ student.lastName }}</div>
-                    </div>
-                    <div class="profile-row">
-                        <div class="label">Имя:</div>
-                        <div class="value">{{ student.firstName }}</div>
-                    </div>
-                    <div class="profile-row">
-                        <div class="label">Отчество:</div>
-                        <div class="value">{{ student.middleName }}</div>
-                    </div>
-                    <div class="profile-row">
-                        <div class="label">Почта:</div>
-                        <div class="value email">{{ student.email }}</div>
+                    <div class="profile-section">
+                        <h3>Основная информация</h3>
+                        <div class="profile-row">
+                            <div class="label">Фамилия:</div>
+                            <div class="value">{{ student.lastName }}</div>
+                        </div>
+                        <div class="profile-row">
+                            <div class="label">Имя:</div>
+                            <div class="value">{{ student.firstName }}</div>
+                        </div>
+                        <div class="profile-row">
+                            <div class="label">Отчество:</div>
+                            <div class="value">{{ student.middleName }}</div>
+                        </div>
+                        <div class="profile-row">
+                            <div class="label">Дата регистрации:</div>
+                            <div class="value">{{ formatDate(student.createdAt) }}</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -48,7 +61,11 @@
                 </div>
                 <div class="stat-item">
                     <div class="stat-value">{{ totalAttendancePercent }}%</div>
-                    <div class="stat-label">Общая посещаемость</div>
+                    <div class="stat-label">Посещаемость</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">{{ diary.length }}</div>
+                    <div class="stat-label">Дисциплин</div>
                 </div>
             </div>
 
@@ -56,25 +73,31 @@
                 <table class="diary-table">
                     <thead>
                         <tr>
-                            <th>Название дисциплины</th>
-                            <th>Баллы</th>
+                            <th>Дисциплина</th>
+                            <th>Прогресс</th>
                             <th>Оценка</th>
                             <th>Посещаемость</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr v-for="(subject, index) in diary" :key="index">
-                            <td class="subject-name">{{ subject.discipline.name }}</td>
-                            <td>
-                                <!-- <div class="progress-container">
-                                    <div class="progress-bar" :style="{width: (subject.points / subject.maxPoints * 100) + '%'}"></div>
-                                    <span class="progress-text">{{ subject.points }}</span>
-                                </div> -->
-
-                                {{ subject.scoreForAnsweredTasks }} из {{ subject.maxScoreForAnsweredTasks }} / 100
+                            <td class="subject-name">
+                                <div class="subject-title">{{ subject.discipline.name }}</div>
                             </td>
                             <td>
-                                <div class="grade" :class="'grade-' + subject.disciplineGrade">{{ subject.disciplineGrade }}</div>
+                                <div class="progress-container">
+                                    <div class="progress-bar" 
+                                         :style="{width: (subject.scoreForAnsweredTasks / subject.maxScoreForAnsweredTasks * 100) + '%'}">
+                                    </div>
+                                    <span class="progress-text">
+                                        {{ subject.scoreForAnsweredTasks }} / {{ subject.maxScoreForAnsweredTasks }}
+                                    </span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="grade" :class="'grade-' + subject.disciplineGrade">
+                                    {{ subject.disciplineGrade }}
+                                </div>
                             </td>
                             <td>
                                 <div class="attendance">
@@ -82,8 +105,9 @@
                                         <div class="attendance-bar"
                                             :style="{ width: subject.disciplineAttendance.percent + '%' }"></div>
                                     </div>
-                                    <div class="attendance-text">{{ subject.disciplineAttendance.visited }} из {{
-                                        subject.disciplineAttendance.total }} / {{ subject.disciplineAttendance.percent }}%</div>
+                                    <div class="attendance-text">
+                                        {{ subject.disciplineAttendance.visited }} из {{ subject.disciplineAttendance.total }}
+                                    </div>
                                 </div>
                             </td>
                         </tr>
@@ -106,25 +130,38 @@ export default {
     mounted() {
         this.student = JSON.parse(localStorage.getItem("student")) || {}
         this.diary = JSON.parse(localStorage.getItem("diary")) || []
-        console.log(this.student);
-        console.log(this.diary);
         if(!this.student.firstName){
             this.$router.push("/authorization")
         }
     },
     computed: {
-    averageGrade() {
-        if (this.diary.length === 0) return 0;
-        const sum = this.diary.reduce((acc, subject) => acc + subject.disciplineGrade, 0);
-        return (sum / this.diary.length).toFixed(1);
+        averageGrade() {
+            if (this.diary.length === 0) return 0;
+            const sum = this.diary.reduce((acc, subject) => acc + subject.disciplineGrade, 0);
+            return (sum / this.diary.length).toFixed(1);
+        },
+        totalAttendancePercent() {
+            if (this.diary.length === 0) return 0;
+            const total = this.diary.reduce((acc, subject) => acc + subject.disciplineAttendance.percent, 0);
+            return Math.round(total / this.diary.length);
+        }
     },
-    totalAttendancePercent() {
-        if (this.diary.length === 0) return 0;
-        const total = this.diary.reduce((acc, subject) => acc + subject.disciplineAttendance.percent, 0);
-        return Math.round(total / this.diary.length);
+    methods: {
+        formatDate(dateString) {
+            if (!dateString) return 'Не указано';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('ru-RU', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        },
+        formatPhoneNumber(phone) {
+            if (!phone) return '';
+            // Форматирование российского номера телефона
+            return phone.replace(/(\d{1})(\d{3})(\d{3})(\d{2})(\d{2})/, '+$1 ($2) $3-$4-$5');
+        }
     }
-}
-
 };
 </script>
 
@@ -132,11 +169,26 @@ export default {
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
 @import url('https://fonts.googleapis.com/icon?family=Material+Icons');
 
+:root {
+    --primary: #7b38e8;
+    --primary-light: #9d65f3;
+    --primary-dark: #5c1bc0;
+    --secondary: #f5f2ff;
+    --white: #ffffff;
+    --text-primary: #2d2d2d;
+    --text-secondary: #6b6b6b;
+    --border: #e0e0e0;
+    --success: #4caf50;
+    --warning: #ff9800;
+    --danger: #f44336;
+    --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
 .student-profile {
     font-family: 'Roboto', Arial, sans-serif;
-    max-width: 900px;
+    max-width: 1200px;
     margin: 0 auto;
-    padding: 20px;
+    padding: 30px 20px;
     color: var(--text-primary);
     background-color: #f8f8f8;
 }
@@ -145,27 +197,49 @@ export default {
 .profile-card,
 .diary-card {
     background-color: var(--white);
-    border-radius: 12px;
-    box-shadow: 0 6px 16px rgba(123, 56, 232, 0.1);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
     margin-bottom: 30px;
     overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.profile-card:hover,
+.diary-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 24px rgba(123, 56, 232, 0.15);
 }
 
 /* Заголовки разделов */
 .profile-header,
 .diary-header {
-    background-color: var(--primary);
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
     color: var(--white);
-    padding: 20px;
+    padding: 24px;
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
-h1,
-h2 {
+h1, h2, h3 {
     margin: 0;
     font-weight: 500;
+}
+
+h1 {
+    font-size: 28px;
+}
+
+h2 {
+    font-size: 24px;
+}
+
+h3 {
+    font-size: 20px;
+    color: var(--primary-dark);
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--secondary);
 }
 
 /* Содержимое профиля */
@@ -180,19 +254,21 @@ h2 {
     display: flex;
     flex-direction: column;
     align-items: center;
+    min-width: 280px;
 }
 
 .profile-photo {
-    width: 180px;
-    height: 180px;
+    width: 200px;
+    height: 200px;
     border-radius: 50%;
     overflow: hidden;
     background-color: var(--secondary);
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 12px rgba(123, 56, 232, 0.15);
-    border: 3px solid var(--primary-light);
+    box-shadow: 0 8px 16px rgba(123, 56, 232, 0.2);
+    border: 4px solid var(--primary-light);
+    margin-bottom: 24px;
 }
 
 .profile-photo img {
@@ -212,7 +288,39 @@ h2 {
 }
 
 .no-photo .material-icons {
-    font-size: 72px;
+    font-size: 80px;
+}
+
+/* Контактная информация */
+.contact-info {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.contact-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-primary);
+    text-decoration: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    transition: background-color 0.2s ease;
+}
+
+.contact-item:hover {
+    background-color: var(--secondary);
+}
+
+.contact-item .material-icons {
+    color: var(--primary);
+    font-size: 20px;
+}
+
+.contact-item span {
+    font-size: 15px;
 }
 
 /* Информация профиля */
@@ -221,45 +329,29 @@ h2 {
     padding: 10px 0;
 }
 
+.profile-section {
+    margin-bottom: 24px;
+}
+
 .profile-row {
     display: flex;
-    margin-bottom: 16px;
-    border-bottom: 1px solid var(--secondary);
-    padding-bottom: 12px;
+    margin-bottom: 14px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    align-items: center;
 }
 
 .label {
-    width: 120px;
+    width: 160px;
     font-weight: 500;
     color: var(--text-secondary);
+    font-size: 15px;
 }
 
 .value {
     flex: 1;
     font-weight: 400;
-}
-
-.email {
-    color: var(--primary);
-    text-decoration: underline;
-}
-
-/* Селектор семестра */
-.semester-selector {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    color: var(--white);
-}
-
-.semester-selector select {
-    background-color: var(--primary-dark);
-    color: var(--white);
-    border: none;
-    padding: 8px 12px;
-    border-radius: 4px;
-    cursor: pointer;
-    outline: none;
+    font-size: 16px;
 }
 
 /* Статистика дневника */
@@ -267,29 +359,31 @@ h2 {
     display: flex;
     justify-content: space-around;
     background-color: var(--secondary);
-    padding: 20px 0;
+    padding: 24px 0;
     margin-bottom: 20px;
 }
 
 .stat-item {
     text-align: center;
+    padding: 0 20px;
 }
 
 .stat-value {
-    font-size: 36px;
+    font-size: 42px;
     font-weight: 700;
     color: var(--primary);
+    margin-bottom: 4px;
 }
 
 .stat-label {
-    font-size: 14px;
+    font-size: 15px;
     color: var(--text-secondary);
-    margin-top: 4px;
+    font-weight: 500;
 }
 
 /* Контейнер таблицы */
 .diary-table-container {
-    padding: 0 20px 20px;
+    padding: 0 24px 24px;
     overflow-x: auto;
 }
 
@@ -314,15 +408,23 @@ h2 {
     font-weight: 500;
     position: sticky;
     top: 0;
+    font-size: 15px;
 }
 
 .diary-table tr:last-child td {
     border-bottom: none;
 }
 
+.diary-table tr:hover td {
+    background-color: rgba(123, 56, 232, 0.05);
+}
+
 /* Название предмета */
 .subject-name {
-    max-width: 250px;
+    min-width: 200px;
+}
+
+.subject-title {
     font-weight: 500;
     color: var(--primary-dark);
 }
@@ -330,18 +432,18 @@ h2 {
 /* Прогресс-бар для баллов */
 .progress-container {
     width: 100%;
-    height: 20px;
+    height: 24px;
     background-color: var(--secondary);
-    border-radius: 10px;
+    border-radius: 12px;
     position: relative;
     overflow: hidden;
 }
 
 .progress-bar {
     height: 100%;
-    background-color: var(--primary);
-    border-radius: 10px;
-    transition: width 0.3s ease;
+    background: linear-gradient(90deg, var(--primary), var(--primary-light));
+    border-radius: 12px;
+    transition: width 0.5s ease;
 }
 
 .progress-text {
@@ -349,22 +451,25 @@ h2 {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    color: var(--text-primary);
+    color: var(--white);
     font-size: 12px;
     font-weight: 700;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 /* Оценки */
 .grade {
     display: inline-block;
-    width: 30px;
-    height: 30px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 700;
     color: var(--white);
+    font-size: 16px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 .grade-5 {
@@ -387,64 +492,128 @@ h2 {
 .attendance {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 8px;
 }
 
 .attendance-progress {
-    height: 6px;
+    height: 8px;
     background-color: #e9e9e9;
-    border-radius: 3px;
+    border-radius: 4px;
     overflow: hidden;
 }
 
 .attendance-bar {
     height: 100%;
-    background-color: var(--primary);
+    background: linear-gradient(90deg, var(--primary), var(--primary-light));
+    transition: width 0.5s ease;
 }
 
 .attendance-text {
-    font-size: 12px;
+    font-size: 13px;
     color: var(--text-secondary);
+    text-align: center;
+}
+
+/* Анимации */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.profile-card,
+.diary-card {
+    animation: fadeIn 0.6s ease forwards;
+}
+
+.diary-card {
+    animation-delay: 0.2s;
 }
 
 /* Адаптивность */
-@media (max-width: 768px) {
+@media (max-width: 992px) {
     .profile-content {
         flex-direction: column;
         align-items: center;
-        gap: 20px;
+        gap: 30px;
     }
 
-    .profile-details {
+    .profile-photo-section {
+        flex-direction: row;
+        align-items: flex-start;
+        gap: 30px;
         width: 100%;
     }
 
-    .diary-stats {
-        padding: 10px 0;
+    .contact-info {
+        margin-top: 20px;
+    }
+}
+
+@media (max-width: 768px) {
+    .profile-content {
+        padding: 20px;
     }
 
-    .stat-value {
-        font-size: 28px;
+    .diary-stats {
+        flex-direction: column;
+        gap: 20px;
+        padding: 20px;
+    }
+
+    .stat-item {
+        padding: 0;
+    }
+
+    .profile-photo-section {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .profile-photo {
+        width: 150px;
+        height: 150px;
     }
 }
 
 @media (max-width: 576px) {
+    .student-profile {
+        padding: 15px 10px;
+    }
 
     .profile-header,
     .diary-header {
-        flex-direction: column;
-        gap: 10px;
+        padding: 16px;
     }
 
-    .semester-selector {
-        width: 100%;
-        justify-content: space-between;
+    h1 {
+        font-size: 24px;
+    }
+
+    h2 {
+        font-size: 20px;
+    }
+
+    .profile-content {
+        padding: 16px;
     }
 
     .diary-table th,
     .diary-table td {
         padding: 12px 8px;
         font-size: 14px;
+    }
+
+    .label {
+        width: 120px;
+        font-size: 14px;
+    }
+
+    .value {
+        font-size: 15px;
+    }
+
+    .stat-value {
+        font-size: 36px;
     }
 }
 </style>
