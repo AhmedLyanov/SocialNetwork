@@ -1,98 +1,110 @@
 <template>
   <div class="login-page">
     <div class="login-container">
-      <h1 class="login-title">Вход в систему колледжа</h1>
+      <h1 class="login-title">Добро пожаловать!</h1>
       <form @submit.prevent="handleSubmit" class="login-form">
-        <div class="form-group">
-          <label for="email" class="input-label">Учебный Email:</label>
-          <div class="input-wrapper">
-            <svg class="input-icon" viewBox="0 0 24 24">
-              <path
-                d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
-            </svg>
-            <input type="email" id="email" v-model="email" required placeholder="student@college.edu"
-              class="form-input" />
+        <div class="container_iputs_form">
+          <div class="form-group">
+            <div class="input-wrapper">
+              <input
+                type="email"
+                id="email"
+                v-model="email"
+                required
+                placeholder="Имя пользователя"
+                class="form-input"
+              />
+            </div>
           </div>
-        </div>
-        <div class="form-group">
-          <label for="password" class="input-label">Пароль:</label>
-          <div class="input-wrapper">
-            <svg class="input-icon" viewBox="0 0 24 24">
-              <path
-                d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z" />
-            </svg>
-            <input type="password" id="password" v-model="password" required placeholder="Введите ваш пароль"
-              class="form-input" />
+          <div class="form-group">
+            <div class="input-wrapper">
+              <input
+                type="password"
+                id="password"
+                v-model="password"
+                required
+                placeholder="Пароль"
+                class="form-input"
+              />
+            </div>
           </div>
         </div>
         <button type="submit" :disabled="loading" class="submit-btn">
-          <span v-if="loading" class="spinner"></span>
-          {{ loading ? 'Проверка данных...' : 'Войти в систему' }}
-        </button>
-        <div v-if="error" class="error-message">
-          <svg viewBox="0 0 24 24" class="error-icon">
+          <svg
+            v-if="!loading"
+            width="25"
+            height="24"
+            viewBox="0 0 25 24"
+            fill="#272727"
+            xmlns="http://www.w3.org/2000/svg"
+            class="btn-icon"
+          >
             <path
-              d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
+              d="M12.5 21V19H19.5V5H12.5V3H19.5C20.05 3 20.521 3.196 20.913 3.588C21.305 3.98 21.5007 4.45067 21.5 5V19C21.5 19.55 21.3043 20.021 20.913 20.413C20.5217 20.805 20.0507 21.0007 19.5 21H12.5ZM10.5 17L9.125 15.55L11.675 13H3.5V11H11.675L9.125 8.45L10.5 7L15.5 12L10.5 17Z"
+            />
           </svg>
+          <span v-if="loading" class="spinner"></span>
+          <span class="btn-text">{{
+            loading ? "Проверка данных..." : "Войти"
+          }}</span>
+        </button>
+        <div class="forget_password_policy">
+          <button>
+            <span>Забыли пароль?</span>
+          </button>
+        </div>
+        <div v-if="error" class="error-message">
           {{ error }}
         </div>
       </form>
-
     </div>
   </div>
 </template>
 
 <script>
-import axios from 'axios';
+import axios from "axios";
 
 const API_URL = "https://api.newlxp.ru/graphql";
 
 export default {
-  name: 'LoginPage',
+  name: "LoginPage",
   data() {
     return {
-      email: '',
-      password: '',
+      email: "",
+      password: "",
       loading: false,
-      error: ''
-    }
+      error: "",
+    };
   },
   methods: {
     async handleSubmit() {
       this.loading = true;
-      this.error = '';
+      this.error = "";
 
       try {
-
         const authResponse = await this.signIn();
 
-
         if (!authResponse || !authResponse.user || !authResponse.accessToken) {
-          throw new Error('Неверный формат ответа сервера');
+          throw new Error("Неверный формат ответа сервера");
         }
 
         const token = authResponse.accessToken;
         const userId = authResponse.user.id;
 
-
         const diary = await this.getDiary(token, userId);
         const userData = await this.getUserData(token);
-        localStorage.setItem('access', token);
-        localStorage.setItem('student', JSON.stringify(userData));
-        localStorage.setItem('diary', JSON.stringify(diary));
-        this.$router.push("/profile")
-
-
-
+        localStorage.setItem("access", token);
+        localStorage.setItem("student", JSON.stringify(userData));
+        localStorage.setItem("diary", JSON.stringify(diary));
+        this.$router.push("/profile");
       } catch (error) {
-        this.error = error.message || 'Ошибка входа. Проверьте данные и попробуйте снова.';
-        console.error('Ошибка входа:', error);
+        this.error =
+          error.message || "Ошибка входа. Проверьте данные и попробуйте снова.";
+        console.error("Ошибка входа:", error);
       } finally {
         this.loading = false;
       }
     },
-
-
 
     async getDiary(token, studentId) {
       const now = new Date();
@@ -135,13 +147,17 @@ export default {
       const headers = {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
-        "apollographql-client-name": "web"
+        "apollographql-client-name": "web",
       };
 
-      const response = await axios.post(API_URL, { query, variables }, { headers });
+      const response = await axios.post(
+        API_URL,
+        { query, variables },
+        { headers }
+      );
 
       if (response.data.errors) {
-        throw new Error('Не удалось получить данные дневника');
+        throw new Error("Не удалось получить данные дневника");
       }
 
       const allDisciplines = response.data.data.searchStudentDisciplines;
@@ -167,8 +183,8 @@ export default {
       const variables = {
         input: {
           email: this.email,
-          password: this.password
-        }
+          password: this.password,
+        },
       };
 
       const response = await axios.post(API_URL, { query, variables });
@@ -232,13 +248,13 @@ export default {
       const response = await axios.post(API_URL, { query }, { headers });
 
       if (response.data.errors) {
-        throw new Error('Не удалось получить данные пользователя');
+        throw new Error("Не удалось получить данные пользователя");
       }
 
       return response.data.data.getMe;
-    }
-  }
-}
+    },
+  },
+};
 </script>
 
 <style scoped>
@@ -247,47 +263,39 @@ export default {
   justify-content: center;
   align-items: flex-start;
   min-height: 100vh;
-  background-color: #f5f5f5;
-  font-family: 'Segoe UI', 'Roboto', sans-serif;
+  background: rgba(15, 11, 31, 1);
+  font-family: "Segoe UI", "Roboto", sans-serif;
   padding: 20px;
 }
 
 .login-container {
   width: 100%;
-  max-width: 420px;
-  background: white;
+  max-width: 465px;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   padding: 40px;
 }
 
 .login-title {
-  color: #6a1b9a;
-  font-size: 24px;
+  color: rgba(255, 255, 255, 1);
+  font-family: "Cabin", sans-serif;
+  font-size: 40px;
   font-weight: 600;
-  margin-bottom: 30px;
+  margin-bottom: 53px;
   text-align: center;
-  position: relative;
+  /* position: relative; */
+  line-height: 140%;
 }
-
-.login-title::after {
-  content: '';
-  display: block;
-  width: 60px;
-  height: 3px;
-  background: #6a1b9a;
-  margin: 15px auto 0;
-  border-radius: 3px;
-}
-
 .login-form {
   margin-top: 20px;
 }
 
 .form-group {
-  margin-bottom: 25px;
+  margin-bottom: 12px;
 }
-
+.container_iputs_form {
+  display: grid;
+}
 .input-label {
   display: block;
   margin-bottom: 8px;
@@ -312,13 +320,13 @@ export default {
 
 .form-input {
   width: 100%;
-  padding: 12px 15px 12px 45px;
+  padding: 12px 15px 12px 12px;
   border: 1px solid #ddd;
-  border-radius: 6px;
+  border-radius: 16px;
   font-size: 15px;
   transition: all 0.3s ease;
-  background-color: white;
-  color: #333;
+  background-color: transparent;
+  color: #ffffff;
 }
 
 .form-input:focus {
@@ -330,24 +338,64 @@ export default {
 .submit-btn {
   width: 100%;
   padding: 14px;
-  background-color: #6a1b9a;
-  color: white;
+  background-color: rgba(255, 255, 255, 1);
   border: none;
-  border-radius: 6px;
+  border-radius: 16px;
+  font-family: "Cabin", sans-serif;
   font-size: 16px;
-  font-weight: 500;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.3s ease;
-  margin-top: 10px;
+  margin-top: 80px;
+  position: relative;
   display: flex;
   align-items: center;
-  justify-content: center;
-  position: relative;
+  justify-content: flex-start;
+  gap: 8px;
+  color: #272727;
 }
-
 .submit-btn:hover {
   background-color: #5a147a;
   box-shadow: 0 4px 8px rgba(106, 27, 154, 0.3);
+  color: white;
+}
+.submit-btn:hover .btn-icon {
+  fill: white;
+}
+.btn-text {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.btn-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  position: relative;
+}
+.btn-icon {
+  order: -1;
+  width: 25px;
+  height: 24px;
+  flex-shrink: 0;
+  transition: fill 0.3s ease;
+}
+
+.spinner {
+  order: -1;
+  width: 18px;
+  height: 18px;
+  border: 3px solid rgba(39, 39, 39, 0.3);
+  border-radius: 50%;
+  border-top-color: #272727;
+  animation: spin 1s ease-in-out infinite;
+  flex-shrink: 0;
+}
+.submit-btn:hover {
+  background-color: #5a147a;
+  box-shadow: 0 4px 8px rgba(106, 27, 154, 0.3);
+  color: white;
 }
 
 .submit-btn:active {
@@ -360,14 +408,15 @@ export default {
   box-shadow: none;
 }
 
-.spinner {
-  width: 18px;
-  height: 18px;
+.submit-btn:hover .spinner {
   border: 3px solid rgba(255, 255, 255, 0.3);
-  border-radius: 50%;
   border-top-color: white;
-  animation: spin 1s ease-in-out infinite;
-  margin-right: 10px;
+}
+
+.btn-text {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 @keyframes spin {
@@ -375,7 +424,6 @@ export default {
     transform: rotate(360deg);
   }
 }
-
 .error-message {
   margin-top: 20px;
   padding: 12px 15px;
