@@ -49,9 +49,11 @@
           }}</span>
         </button>
         <div class="forget_password_policy">
-          <button>
-            <span>Забыли пароль?</span>
-          </button>
+          <div class="forget_password_security">
+            <span class="span_forget_password" id="forget_password"
+              >Забыли пароль?</span
+            >
+          </div>
         </div>
         <div v-if="error" class="error-message">
           {{ error }}
@@ -286,6 +288,27 @@ export default {
   /* position: relative; */
   line-height: 140%;
 }
+
+.forget_password_policy {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-top: 35px;
+}
+
+.span_forget_password {
+  color: rgba(255, 255, 255, 1);
+  font-family: "Cabin", sans-serif;
+  font-weight: 500;
+  font-size: 15px;
+  line-height: 143%;
+  letter-spacing: 0px;
+  text-align: center;
+}
+.span_forget_password:hover{
+  text-decoration: underline;
+  cursor: pointer;
+}
 .login-form {
   margin-top: 20px;
 }
@@ -293,9 +316,11 @@ export default {
 .form-group {
   margin-bottom: 12px;
 }
+
 .container_iputs_form {
   display: grid;
 }
+
 .input-label {
   display: block;
   margin-bottom: 8px;
@@ -335,6 +360,17 @@ export default {
   outline: none;
 }
 
+.forget_password_policy {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  user-select: none;
+}
+
+.forget_password_policy .forget_password_security {
+  background: transparent;
+}
+
 .submit-btn {
   width: 100%;
   padding: 14px;
@@ -346,7 +382,7 @@ export default {
   font-weight: 700;
   cursor: pointer;
   transition: all 0.3s ease;
-  margin-top: 80px;
+  margin-top: 53px;
   position: relative;
   display: flex;
   align-items: center;
@@ -354,19 +390,23 @@ export default {
   gap: 8px;
   color: #272727;
 }
+
 .submit-btn:hover {
   background-color: #5a147a;
   box-shadow: 0 4px 8px rgba(106, 27, 154, 0.3);
   color: white;
 }
+
 .submit-btn:hover .btn-icon {
   fill: white;
 }
+
 .btn-text {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
 }
+
 .btn-content {
   display: flex;
   align-items: center;
@@ -374,6 +414,7 @@ export default {
   gap: 8px;
   position: relative;
 }
+
 .btn-icon {
   order: -1;
   width: 25px;
@@ -392,6 +433,7 @@ export default {
   animation: spin 1s ease-in-out infinite;
   flex-shrink: 0;
 }
+
 .submit-btn:hover {
   background-color: #5a147a;
   box-shadow: 0 4px 8px rgba(106, 27, 154, 0.3);
@@ -424,6 +466,7 @@ export default {
     transform: rotate(360deg);
   }
 }
+
 .error-message {
   margin-top: 20px;
   padding: 12px 15px;
